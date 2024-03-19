@@ -1,0 +1,20 @@
+{
+  "name": "socket-server",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "description": "websocket server for sdp exchange ",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.3",
+    "nodemon": "^3.1.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {}
+}
