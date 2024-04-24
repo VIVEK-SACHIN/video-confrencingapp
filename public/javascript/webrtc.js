@@ -3,7 +3,8 @@ const iceServers = {
         { urls: 'stun:stun.l.google.com:19302' }, // Google's STUN server
         { urls: "stun:stun1.l.google.com:19302" },
         { urls: "stun:stun2.l.google.com:19302" },
-
+        { urls: "stun:stun.12connect.com:3478"},
+        {urls:"stun:iphone-stun.strato-iphone.de:3478"}
     ]
 };
 
@@ -14,40 +15,18 @@ socket.on("connect", () => {
     console.log("Connected to server");
 });
 socket.on("Sdp-offer", (msg) => {
-
-    createsocketAnswer(msg);
-
+    document.getElementById('offer-sdp').value = JSON.stringify(msg);
+    
+   createAnswer();
 
 });
 socket.on("Sdp-answer", async (msg) => {
     document.getElementById('answer-sdp').value = msg;
-    await addAnswer();
-    // if (!peerConnection.currentRemoteDescription) {
-    //     await peerConnection.setRemoteDescription(msg);
-    // }
+    await addAnswer(); 
 });
 
-
-async function createsocketAnswer(msg) {
-    let offer = msg;
-
-    peerConnection.onicecandidate = async (event) => {
-        //Event that fires off when a new answer ICE candidate is created
-        if (event.candidate) {
-            console.log('Adding answer candidate...:', event.candidate)
-            document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription)
-            socket.emit("Sdp-answer", JSON.stringify(peerConnection.localDescription));
-
-        }
-    };
-
-    await peerConnection.setRemoteDescription(offer);
-
-    let answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-}
 let peerConnection = new RTCPeerConnection(iceServers);
-// let peerConnection = new RTCPeerConnection();
+
 let localStream;
 let remoteStream;
 
@@ -67,37 +46,26 @@ let init = async () => {
         });
     };
 }
-let join = async () => {
+let send = async () => {
+    socket.emit("Sdp-offer", peerConnection.localDescription);
+};
 
 
-    peerConnection.onicecandidate = async (event) => {
-        //Event that fires off when a new offer ICE candidate is created
-        if (event.candidate) {
-            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
-            // socket.emit("Sdp-offer", JSON.stringify(peerConnection.localDescription));
-        }
-    };
-
-    const offer = await peerConnection.createOffer();
-
-    await peerConnection.setLocalDescription(offer);
-    await peerConnection.setLocalDescription(offer).then(socket.emit("Sdp-offer", offer));
-}
 
 let createOffer = async () => {
-
-
     peerConnection.onicecandidate = async (event) => {
         //Event that fires off when a new offer ICE candidate is created
         if (event.candidate) {
-            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
-            // socket.emit("Sdp-offer", JSON.stringify(peerConnection.localDescription));
+            // Do nothing until all ICE candidates are gathered
+        } else {
+            // ICE gathering is complete, emit the offer
+            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription);
+            // socket.emit("Sdp-offer", peerConnection.localDescription);
         }
     };
 
     const offer = await peerConnection.createOffer();
 
-    await peerConnection.setLocalDescription(offer);
     await peerConnection.setLocalDescription(offer);
 }
 
@@ -108,8 +76,12 @@ let createAnswer = async () => {
     peerConnection.onicecandidate = async (event) => {
         //Event that fires off when a new answer ICE candidate is created
         if (event.candidate) {
-            console.log('Adding answer candidate...:', event.candidate)
-            document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription)
+            console.log('New Candidate found:', event.candidate);
+        }
+        else{
+            
+            document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription);
+            socket.emit("Sdp-answer", JSON.stringify(peerConnection.localDescription));
         }
     };
 
@@ -124,6 +96,7 @@ let addAnswer = async () => {
     let answer = JSON.parse(document.getElementById('answer-sdp').value)
     console.log('answer:', answer)
     if (!peerConnection.currentRemoteDescription) {
+        console.log("setting remote discription")
         peerConnection.setRemoteDescription(answer);
     }
 }
@@ -133,4 +106,4 @@ init()
 document.getElementById('create-offer').addEventListener('click', createOffer)
 document.getElementById('create-answer').addEventListener('click', createAnswer)
 document.getElementById('add-answer').addEventListener('click', addAnswer)
-document.getElementById('join').addEventListener('click', join)
+document.getElementById('send').addEventListener('click', send)
