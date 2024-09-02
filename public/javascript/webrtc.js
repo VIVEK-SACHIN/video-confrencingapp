@@ -3,7 +3,7 @@ const iceServers = {
         { urls: 'stun:stun.l.google.com:19302' }, // Google's STUN server
         { urls: "stun:stun1.l.google.com:19302" },
         { urls: "stun:stun2.l.google.com:19302" },
-
+        
     ]
 };
 
@@ -35,9 +35,11 @@ async function createsocketAnswer(msg) {
         //Event that fires off when a new answer ICE candidate is created
         if (event.candidate) {
             console.log('Adding answer candidate...:', event.candidate)
+        }
+        else{
             document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription)
             socket.emit("Sdp-answer", JSON.stringify(peerConnection.localDescription));
-
+            
         }
     };
 
@@ -72,9 +74,14 @@ let join = async () => {
 
     peerConnection.onicecandidate = async (event) => {
         //Event that fires off when a new offer ICE candidate is created
-        if (event.candidate) {
-            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
             // socket.emit("Sdp-offer", JSON.stringify(peerConnection.localDescription));
+        
+        if (event.candidate) {
+            console.log('Adding answer candidate...:', event.candidate)
+        }
+        else{
+            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
+            
         }
     };
 
@@ -89,9 +96,13 @@ let createOffer = async () => {
 
     peerConnection.onicecandidate = async (event) => {
         //Event that fires off when a new offer ICE candidate is created
-        if (event.candidate) {
-            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
             // socket.emit("Sdp-offer", JSON.stringify(peerConnection.localDescription));
+        if (event.candidate) {
+            console.log('Adding answer candidate...:', event.candidate)
+        }
+        else{
+            document.getElementById('offer-sdp').value = JSON.stringify(peerConnection.localDescription)
+            
         }
     };
 
@@ -109,8 +120,12 @@ let createAnswer = async () => {
         //Event that fires off when a new answer ICE candidate is created
         if (event.candidate) {
             console.log('Adding answer candidate...:', event.candidate)
+        }
+        else{
+            
             document.getElementById('answer-sdp').value = JSON.stringify(peerConnection.localDescription)
         }
+
     };
 
     await peerConnection.setRemoteDescription(offer);
